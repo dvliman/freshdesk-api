@@ -1,8 +1,13 @@
 require 'rest_client'
 require 'nokogiri'
 
+
 class Freshdesk
 
+  # custom errors
+  class AlreadyExistedError < StandardError; end
+  class ConnectionError < StandardError; end
+  
   attr_accessor :base_url
   
   def initialize(base_url, username, password)
@@ -81,20 +86,21 @@ class Freshdesk
           end
         }
       end
-      
-      body = ""
+
       begin 
         response = RestClient.post uri, builder.to_xml, :content_type => "text/xml"
-        body = response.to_s
+        
       rescue RestClient::UnprocessableEntity => ex
-        body = ex.response.to_s
-      rescue Exception => e
-        puts e.to_s
+        raise AlreadyExistedError, "Entry already existed"
+        
+      rescue RestClient::InternalServerError 
+        raise ConnectionError, "Connection to the server failed"
+        
+      rescue Exception
         raise
       end   
       
-      #parse
-      puts body      
+      response   
     end
   end
   
@@ -136,3 +142,4 @@ end
 
 freshdesk = Freshdesk.new('http://onescreen.freshdesk.com', 'limanoit@gmail.com', '134658')
 response  = freshdesk.post_users(:name => 'test', :email => 'test@test.com', :customer => "onescreen")
+
