@@ -1,7 +1,6 @@
 require 'rest_client'
 require 'nokogiri'
 
-
 class Freshdesk
 
   # custom errors
@@ -20,63 +19,47 @@ class Freshdesk
   end
   
   # Freshdesk API client support "GET" with id parameter optional
-  #   Examples: 
-  #     client = Freshdesk.new(url, username, password)
-  #     client.get_tickets     => list all the tickets
-  #     client.get_tickets 123 => view a particular ticket with id 123
-  #
   #   Returns nil if there is no response
   def self.define_get(name, *args)
     name = name.to_s
     method_name = "get_" + name
 
-    define_method method_name do |args|
+    define_method method_name do |*args| 
       uri = mapping(name)
-      uri.gsub!(/.xml/, "/#{args}.xml") if !args.nil?
-      
+      uri.gsub!(/.xml/, "/#{args}.xml") if args.size > 0
+
       begin
         response = RestClient.get uri
-      rescue 
+      rescue Exception
         response = nil
       end
     end
   end
   
   # Freshdesk API client support "DELETE" with the required id parameter
-  #   Examples: 
-  #     client = Freshdesk.new(url, username, password)
-  #     client.delete_tickets 123 => delete a particular ticket with id 123
-  #
-  #  Will throw: 
-  #    RestClientErrors if it can not find a particular id or 
-  #                     if there is an error in connection
   def self.define_delete(name, *args)
     name = name.to_s
     method_name = "delete_" + name
 
     define_method method_name do |args|
       uri = mapping(name)
-      raise StandardError, "An ID is required to delete" if args.nil?
+      raise StandardError, "An ID is required to delete" if args.size.eql? 0
       uri.gsub!(/.xml/, "/#{args}.xml")
       RestClient.delete uri
     end
   end
   
-  # Freshdesk API client support "POST" with the required id parameter
-  #   Examples: 
-  #     client = Freshdesk.new(url, username, password)
-  #     client.post_users :name=> "david", :customer => "google"
-  #       => create a user with the name david and company name google
+  # Freshdesk API client support "POST" with the optional key, value parameter
   #
   #  Will throw: 
-  #    RestClientErrors  if the same object already exists or
-  #                      server does not accept the parameter
+  #    AlreadyExistedError if there is exact copy of data in the server
+  #    ConnectionError     if there is connection problem with the server
   def self.define_post(name, *args)
     name = name.to_s
     method_name = "post_" + name
     
     define_method method_name do |args|
-      raise StandardError, "Arguments are required to modify data" if args.nil?
+      raise StandardError, "Arguments are required to modify data" if args.size.eql? 0
       uri = mapping(name)
       
       builder = Nokogiri::XML::Builder.new do |xml|
@@ -90,13 +73,16 @@ class Freshdesk
       begin 
         response = RestClient.post uri, builder.to_xml, :content_type => "text/xml"
         
-      rescue RestClient::UnprocessableEntity => ex
+      rescue RestClient::UnprocessableEntity
         raise AlreadyExistedError, "Entry already existed"
-        
-      rescue RestClient::InternalServerError 
-        raise ConnectionError, "Connection to the server failed"
-        
-      rescue Exception
+      
+      rescue RestClient::InternalServerError
+        raise ConnectionError, "Connection to the server failed. Please check hostname"
+      
+      rescue RestClient::Found
+        raise ConnectionError, "Connection to the server failed. Please check username/password"
+      
+      rescue Exception => e3
         raise
       end   
       
@@ -109,7 +95,8 @@ class Freshdesk
     define_post a  
     define_delete a
   end
-    
+  
+   
   # Mapping of object name to url:
   #   tickets => helpdesk/tickets.xml
   #   ticket_fields => /ticket_fields.xml
@@ -140,6 +127,7 @@ class Freshdesk
   end
 end
 
-freshdesk = Freshdesk.new('http://onescreen.freshdesk.com', 'limanoit@gmail.com', '134658')
-response  = freshdesk.post_users(:name => 'test', :email => 'test@test.com', :customer => "onescreen")
-
+#freshdesk = Freshdesk.new('http://onescreen.freshdesk.com', 'limanoit@gmail.com', '134658')
+#response  = freshdesk.post_users(:name => 'test', :email => 'test@143124test.com', :customer => "onescreen")
+#response = freshdesk.post_users(:name=>'NirmitPatel', :email=>'f.last@onescreen.com', :customer=>'1000500nemo')
+#puts response
