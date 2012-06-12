@@ -89,11 +89,51 @@ class Freshdesk
       response   
     end
   end
+
+  # Freshdesk API client support "PUT" with key, value parameter
+  #
+  #  Will throw: 
+  #    ConnectionError     if there is connection problem with the server
+  def self.define_put(name, *args)
+    name = name.to_s
+    method_name = "put_" + name
+    
+    define_method method_name do |args|
+      raise StandardError, "Arguments are required to modify data" if args.size.eql? 0
+      raise StandardError, "id is required to modify data" if args[:id].nil?
+      uri = mapping(name)
+      
+      builder = Nokogiri::XML::Builder.new do |xml|
+        xml.send(doc_name(name)) {
+          args.each do |key, value|
+            xml.send(key, value)
+          end
+        }
+      end
+
+      begin 
+        uri.gsub!(/.xml/, "/#{args[:id]}.xml")
+        response = RestClient.put uri, builder.to_xml, :content_type => "text/xml"
+        
+      rescue RestClient::InternalServerError
+        raise ConnectionError, "Connection to the server failed. Please check hostname"
+      
+      rescue RestClient::Found
+        raise ConnectionError, "Connection to the server failed. Please check username/password"
+      
+      rescue Exception => e3
+        raise
+      end   
+      
+      response   
+    end
+  end
   
   [:tickets, :ticket_fields, :users, :forums, :solutions, :companies].each do |a|
     define_get a
     define_post a  
     define_delete a
+    define_put a
   end
   
    
@@ -126,8 +166,3 @@ class Freshdesk
     end
   end
 end
-
-#freshdesk = Freshdesk.new('http://onescreen.freshdesk.com', 'limanoit@gmail.com', '134658')
-#response  = freshdesk.post_users(:name => 'test', :email => 'test@143124test.com', :customer => "onescreen")
-#response = freshdesk.post_users(:name=>'NirmitPatel', :email=>'f.last@onescreen.com', :customer=>'1000500nemo')
-#puts response
