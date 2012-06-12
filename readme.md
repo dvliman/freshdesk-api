@@ -16,6 +16,7 @@ client = Freshdesk.new("http://companyname.freshdesk.com", "user@domain.com", "p
 response = client.get_users  
 client.get_users 123  
 client.post_users(:name => "test", :email => "test@143124test.com", :customer => "name")  
+client.put_users(:id =>123, :name => "test", :email => "test@143124test.com", :customer => "name")  
 client.delete_tickets 123  
 ```
 
