@@ -20,7 +20,7 @@ class Freshdesk
   
   # Freshdesk API client support "GET" with id parameter optional
   #   Returns nil if there is no response
-  def self.define_get(name, *args)
+  def self.fd_define_get(name, *args)
     name = name.to_s
     method_name = "get_" + name
 
@@ -37,7 +37,7 @@ class Freshdesk
   end
   
   # Freshdesk API client support "DELETE" with the required id parameter
-  def self.define_delete(name, *args)
+  def self.fd_define_delete(name, *args)
     name = name.to_s
     method_name = "delete_" + name
 
@@ -54,7 +54,7 @@ class Freshdesk
   #  Will throw: 
   #    AlreadyExistedError if there is exact copy of data in the server
   #    ConnectionError     if there is connection problem with the server
-  def self.define_post(name, *args)
+  def self.fd_define_post(name, *args)
     name = name.to_s
     method_name = "post_" + name
     
@@ -94,7 +94,7 @@ class Freshdesk
   #
   #  Will throw: 
   #    ConnectionError     if there is connection problem with the server
-  def self.define_put(name, *args)
+  def self.fd_define_put(name, *args)
     name = name.to_s
     method_name = "put_" + name
     
@@ -130,10 +130,10 @@ class Freshdesk
   end
   
   [:tickets, :ticket_fields, :users, :forums, :solutions, :companies].each do |a|
-    define_get a
-    define_post a  
-    define_delete a
-    define_put a
+    fd_define_get a
+    fd_define_post a  
+    fd_define_delete a
+    fd_define_put a
   end
   
    
