@@ -9,7 +9,7 @@ class Freshdesk
   
   attr_accessor :base_url
   
-  def initialize(base_url, username, password)
+  def initialize(base_url, username, password='X')
     
     @base_url = base_url
     
