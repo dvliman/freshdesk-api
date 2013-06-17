@@ -64,6 +64,18 @@ class Freshdesk
       
       builder = Nokogiri::XML::Builder.new do |xml|
         xml.send(doc_name(name)) {
+          if args.has_key? :attachment
+            attachment_name = args[:attachment][:name] or raise StandardError, "Attachment name required"
+            attachment_cdata = args[:attachment][:cdata] or raise StandardError, "Attachment CDATA required" 
+            xml.send("attachments", type: "array") {
+              xml.send("attachment") {
+                xml.send("resource", "type" => "file", "name" => attachment_name, "content-type" => "application/octet-stream") {
+                  xml.cdata attachment_cdata
+                }
+              }
+            }
+          args.except! :attachment
+          end
           args.each do |key, value|
             xml.send(key, value)
           end
