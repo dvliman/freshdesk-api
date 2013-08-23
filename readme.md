@@ -61,8 +61,8 @@ client.delete_users(id - required)
 ```
 
 ## Authors ##
-@dvliman
-@tsmacdonald
+- @dvliman
+- @tsmacdonald
 
 
 
