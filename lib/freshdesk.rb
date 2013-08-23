@@ -18,6 +18,19 @@ class Freshdesk
       req.basic_auth username, password
     end
   end
+
+  def response_format
+    @response_format ||= "xml"
+  end
+
+  # Specify the response format to use--JSON or XML. Currently JSON is only
+  # supported for GETs, so other verbs will still use XML.
+  def response_format=(format)
+    unless format.downcase =~ /json|xml/
+      raise StandardError "Unsupported format: '#{format}'. Please specify 'xml' or 'json'."
+    end
+    @response_format = format.downcase
+  end
   
   # Freshdesk API client support "GET" with id parameter optional
   #   Returns nil if there is no response
@@ -27,7 +40,8 @@ class Freshdesk
 
     define_method method_name do |*args| 
       uri = mapping(name)
-      uri.gsub!(/.xml/, "/#{args}.xml") if args.size > 0
+      uri.gsub!(/\.xml/, "\.#{response_format}") 
+      uri.gsub!(/\.#{response_format}/, "/#{args}\.#{response_format}") if args.size > 0
 
       begin
         response = RestClient.get uri
@@ -45,6 +59,7 @@ class Freshdesk
 
     define_method method_name do |params={}| 
       uri = mapping(name)
+      uri.gsub!(/\.xml/, ".#{response_format}") 
       unless params.empty?
         uri += '?' + URI.encode_www_form(params)
       end
