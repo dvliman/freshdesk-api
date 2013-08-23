@@ -1,7 +1,7 @@
 ## freshdesk-api ##
 A Ruby API client that interfaces with freshdesk.com web service. This client supports regular CRUD operation 
 
-API docs are here [http://freshdesk.com/api/](http://freshdesk.com/api/)
+Freshdesk's API docs are here [http://freshdesk.com/api/](http://freshdesk.com/api/)
 
 As of now, it supports the following: 
 
@@ -36,6 +36,7 @@ users.elements.each("users/user") { |u|
 
 ```
 client.get_tickets(id - optional)
+client.get_user_ticket({:email => 'foo@example.com})
 client.get_users(id - optional)
 client.get_forums(id - optional)
 client.get_solutions(id - optional)
@@ -59,8 +60,9 @@ client.delete_users(id - required)
 # etc.
 ```
 
-## Author ##
+## Authors ##
 @dvliman
+@tsmacdonald
 
 
 

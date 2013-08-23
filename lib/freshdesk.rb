@@ -1,5 +1,6 @@
 require 'rest_client'
 require 'nokogiri'
+require 'uri'
 
 class Freshdesk
 
@@ -27,6 +28,26 @@ class Freshdesk
     define_method method_name do |*args| 
       uri = mapping(name)
       uri.gsub!(/.xml/, "/#{args}.xml") if args.size > 0
+
+      begin
+        response = RestClient.get uri
+      rescue Exception
+        response = nil
+      end
+    end
+  end
+
+  # Certain GET calls require query strings instead of a more
+  # RESTful URI. This method and fd_define_get are mutually exclusive.
+  def self.fd_define_parameterized_get(name)
+    name = name.to_s
+    method_name = "get_" + name
+
+    define_method method_name do |params={}| 
+      uri = mapping(name)
+      unless params.empty?
+        uri += '?' + URI.encode_www_form(params)
+      end
 
       begin
         response = RestClient.get uri
@@ -147,6 +168,10 @@ class Freshdesk
     fd_define_delete a
     fd_define_put a
   end
+
+  [:user_ticket].each do |resource|
+    fd_define_parameterized_get resource
+  end
   
    
   # Mapping of object name to url:
@@ -159,6 +184,7 @@ class Freshdesk
   def mapping(method_name)
     path = case method_name
       when "tickets" then File.join(@base_url + "helpdesk/tickets.xml")
+      when "user_ticket" then File.join(@base_url + "helpdesk/tickets/user_ticket.xml")
       when "ticket_fields" then File.join( @base_url, "ticket_fields.xml")
       when "users" then File.join(@base_url, "contacts.xml")
       when "forums" then File.join(@base_url + "categories.xml")
