@@ -41,8 +41,21 @@ class Freshdesk
     define_method method_name do |*args| 
       uri = mapping(name)
       uri.gsub!(/\.xml/, "\.#{response_format}") 
-      uri.gsub!(/\.#{response_format}/, "/#{args}\.#{response_format}") if args.size > 0
 
+      # If we've been passed a string paramter, it means we're fetching
+      # something like domain_URL/helpdesk/tickets/[ticket_id].xml
+      #
+      # If we're supplied with a hash parameter, it means we're fetching
+      # something like domain_URL/helpdesk/tickets.xml?filter_name=all_tickets&page=[value]
+      if args.size > 0
+        if args[0].class == String
+          uri.gsub!(/\.#{response_format}/, "/#{args}\.#{response_format}")
+        else
+          uri += '?' + URI.encode_www_form(args[0])
+        end
+      end
+      pp uri
+      
       begin
         response = RestClient.get uri
       rescue Exception
@@ -177,7 +190,7 @@ class Freshdesk
     end
   end
   
-  [:tickets, :ticket_fields, :users, :forums, :solutions, :companies].each do |a|
+  [:tickets, :ticket_fields, :users, :forums, :solutions, :companies, :time_sheets].each do |a|
     fd_define_get a
     fd_define_post a  
     fd_define_delete a
@@ -205,6 +218,7 @@ class Freshdesk
       when "forums" then File.join(@base_url + "categories.xml")
       when "solutions" then File.join(@base_url + "solution/categories.xml")
       when "companies" then File.join(@base_url + "customers.xml")
+      when "time_sheets" then File.join(@base_url + "helpdesk/time_sheets.xml")
     end
   end
   
