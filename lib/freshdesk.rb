@@ -54,7 +54,6 @@ class Freshdesk
           uri += '?' + URI.encode_www_form(args[0])
         end
       end
-      pp uri
       
       begin
         response = RestClient.get uri
