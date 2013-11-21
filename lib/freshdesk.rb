@@ -106,9 +106,9 @@ class Freshdesk
     name = name.to_s
     method_name = "post_" + name
 
-    define_method method_name do |args|
+    define_method method_name do |args, id=nil|
       raise StandardError, "Arguments are required to modify data" if args.size.eql? 0
-      uri = mapping(name)
+      uri = mapping(name, id)
 
       builder = Nokogiri::XML::Builder.new do |xml|
         xml.send(doc_name(name)) {
@@ -189,7 +189,7 @@ class Freshdesk
     end
   end
 
-  [:tickets, :ticket_fields, :users, :forums, :solutions, :companies, :time_sheets].each do |a|
+  [:tickets, :ticket_fields, :ticket_notes, :users, :forums, :solutions, :companies, :time_sheets].each do |a|
     fd_define_get a
     fd_define_post a
     fd_define_delete a
@@ -208,11 +208,12 @@ class Freshdesk
   #   forums => /categories.xml
   #   solutions => /solution/categories.xml
   #   companies => /customers.xml
-  def mapping(method_name)
+  def mapping(method_name, id = nil)
     case method_name
       when "tickets" then File.join(@base_url + "helpdesk/tickets.xml")
       when "user_ticket" then File.join(@base_url + "helpdesk/tickets/user_ticket.xml")
-      when "ticket_fields" then File.join( @base_url, "ticket_fields.xml")
+      when "ticket_fields" then File.join(@base_url, "ticket_fields.xml")
+      when "ticket_notes" then File.join(@base_url, "helpdesk/tickets/#{id}/notes.xml")
       when "users" then File.join(@base_url, "contacts.xml")
       when "forums" then File.join(@base_url + "categories.xml")
       when "solutions" then File.join(@base_url + "solution/categories.xml")
@@ -226,6 +227,7 @@ class Freshdesk
     case name
       when "tickets" then "helpdesk_ticket"
       when "ticket_fields" then "helpdesk-ticket-fields"
+      when "ticket_notes" then "helpdesk_note"
       when "users" then "user"
       when "companies" then "customer"
       else raise StandardError, "No root object for this call"
