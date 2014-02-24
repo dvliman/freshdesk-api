@@ -2,8 +2,8 @@
 
 Gem::Specification.new do |s|
   s.name        = 'freshdesk'
-  s.version     = "0.4"
-  s.date        = '2014-02-14'
+  s.version     = "0.5"
+  s.date        = '2014-02-24'
   s.summary     = "Ruby Gem for interfacing with the Freshdesk API"
   s.description = "Ruby Gem for interfacing with the Freshdesk API"
   s.authors     = ["David Liman", "Tim Macdonald", "Jesse Pinho"]
