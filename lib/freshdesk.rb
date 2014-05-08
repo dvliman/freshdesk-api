@@ -48,10 +48,11 @@ class Freshdesk
       # If we're supplied with a hash parameter, it means we're fetching
       # something like domain_URL/helpdesk/tickets.xml?filter_name=all_tickets&page=[value]
       if args.size > 0
-        if args[0].class == String || args[0].class == Fixnum
-          uri.gsub!(/\.#{response_format}/, "/#{args[0]}\.#{response_format}")
+        url_args = args.first
+        if url_args.class == Hash
+          uri += '?' + URI.encode_www_form(url_args)
         else
-          uri += '?' + URI.encode_www_form(args[0])
+          uri.gsub!(/\.#{response_format}/, "/#{url_args}\.#{response_format}")
         end
       end
 
