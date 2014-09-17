@@ -13,10 +13,7 @@ class Freshdesk
   def initialize(base_url, username, password='X')
 
     @base_url = base_url
-
-    RestClient.add_before_execution_proc do | req, params |
-      req.basic_auth username, password
-    end
+    @auth = {:user => username, :pass => password}
   end
 
   def response_format
@@ -57,7 +54,8 @@ class Freshdesk
       end
 
       begin
-        response = RestClient.get uri
+        #response = RestClient.get uri
+        response = RestClient::Request.execute(@auth.merge(:method => :get, :url = uri)
       rescue Exception
         response = nil
       end
