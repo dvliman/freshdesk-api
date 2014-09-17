@@ -13,7 +13,7 @@ class Freshdesk
   def initialize(base_url, username, password='X')
 
     @base_url = base_url
-    @auth = {:user => username, :pass => password}
+    @auth = {:user => username, :password => password}
   end
 
   def response_format
