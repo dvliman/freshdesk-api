@@ -13,10 +13,7 @@ class Freshdesk
   def initialize(base_url, username, password='X')
 
     @base_url = base_url
-
-    RestClient.add_before_execution_proc do | req, params |
-      req.basic_auth username, password
-    end
+    @auth = {:user => username, :password => password}
   end
 
   def response_format
@@ -57,7 +54,7 @@ class Freshdesk
       end
 
       begin
-        response = RestClient.get uri
+        response = RestClient::Request.execute(@auth.merge(:method => :get, :url => uri))
       rescue Exception
         response = nil
       end
@@ -78,7 +75,7 @@ class Freshdesk
       end
 
       begin
-        response = RestClient.get uri
+        response = RestClient::Request.execute(@auth.merge(:method => :get, :url => uri))
       rescue Exception
         response = nil
       end
@@ -94,7 +91,7 @@ class Freshdesk
       uri = mapping(name)
       raise StandardError, "An ID is required to delete" if args.size.eql? 0
       uri.gsub!(/.xml/, "/#{args}.xml")
-      RestClient.delete uri
+      RestClient::Request.execute(@auth.merge(:method => :delete, :url => uri))
     end
   end
 
@@ -132,8 +129,13 @@ class Freshdesk
       end
 
       begin
-        response = RestClient.post uri, builder.to_xml, :content_type => "text/xml"
-
+        options = @auth.merge(
+          :method => :post,
+          :payload => builder.to_xml,
+          :headers => {:content_type => "text/xml"},
+          :url => uri
+        )
+        response = RestClient::Request.execute(options)
       rescue RestClient::UnprocessableEntity
         raise AlreadyExistedError, "Entry already existed"
 
@@ -174,8 +176,13 @@ class Freshdesk
 
       begin
         uri.gsub!(/.xml/, "/#{args[:id]}.xml")
-        response = RestClient.put uri, builder.to_xml, :content_type => "text/xml"
-
+        options = @auth.merge(
+          :method => :put,
+          :payload => builder.to_xml,
+          :headers => {:content_type => "text/xml"},
+          :url => uri
+        )
+        response = RestClient::Request.execute(options)
       rescue RestClient::InternalServerError
         raise ConnectionError, "Connection to the server failed. Please check hostname"
 
