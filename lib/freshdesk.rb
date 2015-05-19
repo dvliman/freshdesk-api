@@ -218,15 +218,15 @@ class Freshdesk
   #   companies => /customers.xml
   def mapping(method_name, id = nil)
     case method_name
-      when "tickets" then File.join(@base_url + "helpdesk/tickets.xml")
-      when "user_ticket" then File.join(@base_url + "helpdesk/tickets/user_ticket.xml")
+      when "tickets" then File.join(@base_url, "helpdesk/tickets.xml")
+      when "user_ticket" then File.join(@base_url, "helpdesk/tickets/user_ticket.xml")
       when "ticket_fields" then File.join(@base_url, "ticket_fields.xml")
       when "ticket_notes" then File.join(@base_url, "helpdesk/tickets/#{id}/notes.xml")
       when "users" then File.join(@base_url, "contacts.xml")
-      when "forums" then File.join(@base_url + "categories.xml")
-      when "solutions" then File.join(@base_url + "solution/categories.xml")
-      when "companies" then File.join(@base_url + "customers.xml")
-      when "time_sheets" then File.join(@base_url + "helpdesk/time_sheets.xml")
+      when "forums" then File.join(@base_url, "categories.xml")
+      when "solutions" then File.join(@base_url, "solution/categories.xml")
+      when "companies" then File.join(@base_url, "customers.xml")
+      when "time_sheets" then File.join(@base_url, "helpdesk/time_sheets.xml")
     end
   end
 
