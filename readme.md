@@ -17,6 +17,10 @@ As of now, it supports the following:
 client = Freshdesk.new("http://companyname.freshdesk.com/", "user@domain.com", "password")  
 # note trailing slash in domain is required
 
+client = Freshdesk.new("http://companyname.freshdesk.com/", "api key")
+# simply lave out the password when specifiying the api key
+
+
 response = client.get_users  
 client.get_users 123  
 client.post_users(:name => "test", :email => "test@143124test.com", :customer => "name")  
