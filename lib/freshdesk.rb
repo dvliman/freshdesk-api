@@ -1,8 +1,21 @@
 require 'rest_client'
 require 'nokogiri'
 require 'uri'
+require 'json'
 
 class Freshdesk
+
+  class Ticket
+    STATUS_OPEN = 2
+    STATUS_PENDING = 3
+    STATUS_RESOLVED = 4
+    STATUS_CLOSED = 5
+
+    PRIORITY_LOW = 1
+    PRIORITY_MEDIUM = 2
+    PRIORITY_HIGH = 3
+    PRIORITY_URGENT = 4
+  end
 
   # custom errors
   class AlreadyExistedError < StandardError; end
@@ -100,6 +113,49 @@ class Freshdesk
   #  Will throw:
   #    AlreadyExistedError if there is exact copy of data in the server
   #    ConnectionError     if there is connection problem with the server
+  def self.fd_define_post_json(name)
+    name = name.to_s
+    method_name = "post_" + name
+
+    define_method method_name do |args, id=nil|
+      raise StandardError, "Arguments are required to modify data" if args.size.eql? 0
+      uri = mapping(name, id)
+      payload = { doc_name(name) => args }
+      unless args[:tags].nil?
+        payload[:helpdesk] = { tags: args[:tags] }
+        args.delete(:tags)
+      end
+
+      begin
+        options = @auth.merge(
+          :method => :post,
+          :payload => JSON.generate(payload),
+          :headers => {:content_type => "application/json"},
+          :url => uri
+        )
+        response = RestClient::Request.execute(options)
+      rescue RestClient::UnprocessableEntity
+        raise AlreadyExistedError, "Entry already existed"
+
+      rescue RestClient::InternalServerError
+        raise ConnectionError, "Connection to the server failed. Please check hostname"
+
+      rescue RestClient::Found
+        raise ConnectionError, "Connection to the server failed. Please check username/password"
+
+      rescue Exception
+        raise
+      end
+
+      response
+    end
+  end
+
+  # Freshdesk API client support "POST" with the optional key, value parameter
+  #
+  #  Will throw:
+  #    AlreadyExistedError if there is exact copy of data in the server
+  #    ConnectionError     if there is connection problem with the server
   def self.fd_define_post(name)
     name = name.to_s
     method_name = "post_" + name
@@ -123,7 +179,15 @@ class Freshdesk
           args.except! :attachment
           end
           args.each do |key, value|
-            xml.send(key, value)
+            if value.is_a? Hash
+              xml.send(key) {
+                value.each do |key, value|
+                  xml.send(key, value)
+                end
+              }
+            else
+              xml.send(key, value)
+            end
           end
         }
       end
@@ -204,6 +268,10 @@ class Freshdesk
     fd_define_put a
   end
 
+  [:create_ticket].each do |a|
+    fd_define_post_json a
+  end
+
   [:user_ticket].each do |resource|
     fd_define_parameterized_get resource
   end
@@ -218,9 +286,10 @@ class Freshdesk
   #   companies => /customers.xml
   def mapping(method_name, id = nil)
     case method_name
+      when "create_ticket" then File.join(@base_url, "helpdesk/tickets.json")
       when "tickets" then File.join(@base_url, "helpdesk/tickets.xml")
       when "user_ticket" then File.join(@base_url, "helpdesk/tickets/user_ticket.xml")
-      when "ticket_fields" then File.join(@base_url, "ticket_fields.xml")
+      when "ticket_fields" then File.join(@base_url, "ticket_fields.json")
       when "ticket_notes" then File.join(@base_url, "helpdesk/tickets/#{id}/notes.xml")
       when "users" then File.join(@base_url, "contacts.xml")
       when "forums" then File.join(@base_url, "categories.xml")
@@ -234,6 +303,7 @@ class Freshdesk
   def doc_name(name)
     case name
       when "tickets" then "helpdesk_ticket"
+      when "create_ticket" then "helpdesk_ticket"
       when "ticket_fields" then "helpdesk-ticket-fields"
       when "ticket_notes" then "helpdesk_note"
       when "users" then "user"
