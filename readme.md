@@ -18,7 +18,7 @@ client = Freshdesk.new("http://companyname.freshdesk.com/", "user@domain.com", "
 # note trailing slash in domain is required
 
 client = Freshdesk.new("http://companyname.freshdesk.com/", "api key")
-# simply lave out the password when specifiying the api key
+# simply leave out the password when specifiying the api key
 
 
 response = client.get_users  
