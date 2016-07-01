@@ -1,3 +1,5 @@
+# DEPRECATED: This gem only works with v1 of Freshdesk's API, which is no longer current.
+
 ## freshdesk-api ##
 A Ruby API client that interfaces with freshdesk.com web service. This client supports regular CRUD operation 
 
